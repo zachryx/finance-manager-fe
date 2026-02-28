@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -97,7 +98,10 @@ export class RegisterComponent {
   loading = false;
   error = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
   onSubmit() {
     if (this.password !== this.confirmPassword) {
@@ -113,9 +117,15 @@ export class RegisterComponent {
     this.loading = true;
     this.error = '';
 
-    setTimeout(() => {
-      this.loading = false;
-      this.router.navigate(['/auth/login']);
-    }, 1000);
+    this.authService.register(this.name, this.email, this.password).subscribe({
+      next: () => {
+        this.loading = false;
+        this.router.navigate(['/auth/login']);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err.message || 'Registration failed. Please try again.';
+      },
+    });
   }
 }

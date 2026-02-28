@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -86,15 +87,27 @@ export class LoginComponent {
   loading = false;
   error = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
   onSubmit() {
     this.loading = true;
     this.error = '';
-    
-    setTimeout(() => {
-      this.loading = false;
-      this.router.navigate(['/dashboard']);
-    }, 1000);
+
+    this.authService.login(this.email, this.password, this.rememberMe).subscribe({
+      next: (response) => {
+        if (response?.tokens) {
+          this.authService.saveTokens(response.tokens);
+          this.router.navigate(['/dashboard']);
+        }
+        this.loading = false;
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err.message || 'Login failed. Please try again.';
+      },
+    });
   }
 }
